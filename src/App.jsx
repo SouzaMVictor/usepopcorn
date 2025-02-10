@@ -9,10 +9,14 @@ const KEY = "b2d20d5f";
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]); //prop drilling. tem que ser passado lá pro MovieList
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false); //state para um componente loading. colocado como false(nao há necessidade de aparecer loading no começo)
   const [error, setError] = useState(""); //state pare erros
   const [selectedId, setSelectedId] = useState(null);
+  // const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(function () {
+    const storedValue = localStorage.getItem("watched");
+    return JSON.parse(storedValue);
+  });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -31,6 +35,12 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched]
+  );
   useEffect(
     function () {
       //para usar async functions no react, tem que incluir a propria numa function dentro do useeffect
@@ -241,6 +251,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     onCloseMovie();
   }
   useEffect(
+    //side effect
     function () {
       function callback(e) {
         if (e.code === "Escape") {
@@ -270,6 +281,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     [selectedId] //acontecer a cada vez que o componente rendrizar. entao, necessario colocar o que vai mudar pro componente ser renderizado da forma correta
   );
   useEffect(
+    //side effect
     function () {
       if (!title) return;
       document.title = `Movie: ${title}`;
