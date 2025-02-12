@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import StarRating from "./StarRating";
 
@@ -168,6 +168,36 @@ function Logo() {
   );
 }
 function Search({ query, setQuery }) {
+  const inputEl = useRef(null); //em dom manipulation é geralmente null mesmo
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (e.code === "Enter") {
+          if (document.activeElement === inputEl.current) return;
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+      document.addEventListener("keydown", callback);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
+  // useEffect(function () {
+  //   // const el = document.querySelector(".search");
+  //   // console.log(el);
+  //   // el.focus();
+  //   //NÃO adicionar event listeners assim
+  //   //usar
+  // }, []);
+
+  //usar o novo hook chamado useRef, qe cria um object que fala o que (.current property) deve persistir durante os renders!!
+  //uso 1 - cria variaveis que vao continuar as mesmas durante os renders
+  //uso 2 - selecionar e guardar DOM
+  //dados que não serao renderizados --> aparecem em handler functions ou effects e  não no jsx ---> se precisa de dados que vao aparecer no render, entao usa o state!
+  //nao usar em render logic
+
   return (
     <input
       className="search"
@@ -175,6 +205,7 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl} //só colocar no lugar que queremos que eles ja estão conectados
     />
   );
 }
@@ -220,6 +251,14 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current = countRef.current++;
+    },
+    [userRating]
+  );
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId
@@ -246,6 +285,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       userRating,
       runtime: Number(runtime.split(" ").at(0)),
+      countRatingDecision: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
@@ -392,7 +432,7 @@ function WatchedMovie({ movie, onDeleteWatched }) {
   return (
     <li key={movie.imdbID}>
       <img src={movie.poster} alt={`${movie.title} poster`} />
-      <h3>{movie.Title}</h3>
+      <h3>{movie.title}</h3>
       <div>
         <p>
           <span>⭐️</span>
