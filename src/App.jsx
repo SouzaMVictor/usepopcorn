@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import StarRating from "./StarRating";
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-
 const KEY = "b2d20d5f";
 export default function App() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState([]); //prop drilling. tem que ser passado lá pro MovieList
-  const [isLoading, setIsLoading] = useState(false); //state para um componente loading. colocado como false(nao há necessidade de aparecer loading no começo)
-  const [error, setError] = useState(""); //state pare erros
   const [selectedId, setSelectedId] = useState(null);
+  const { movies, isLoading, error } = useMovies(query);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
   // const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
+  // const [watched, setWatched] = useState(function () {
+  //   const storedValue = localStorage.getItem("watched");
+  //   return JSON.parse(storedValue);
+  // });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -35,62 +35,7 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
-  useEffect(
-    function () {
-      //para usar async functions no react, tem que incluir a propria numa function dentro do useeffect
-      const controller = new AbortController();
-      async function fetchMovies() {
-        try {
-          //try block(junto com o catch). caso nao haja erros, o que vai ser executado é o setLoading pra true, a response vai buscar os dados da api
-          setIsLoading(true);
-          setError("");
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-            { signal: controller.signal }
-          );
-          if (!res.ok)
-            //se não estiver ok, lançar mensagem de error
-            throw new Error("Something went wrong with fetching movies ");
-          const data = await res.json();
-          if (data.Response === "False") throw new Error("Movie not found");
-          setMovies(data.Search); //se a response for falsa/ undefined, entao colocar que o filme nao foi encontrado
-          setError("");
-        } catch (err) {
-          //se houver um error, entao
-          console.log(err.message); //mensagem de erro no console
-          if (err.name !== "AbortError") {
-            setError(err.message);
-          }
-          setError(err.message); //state de error, alterando entre a mensagem de error do filme nao encontrando ou o algum problema na busca da api
-        } finally {
-          setIsLoading(false); //set de loading mudando pra false caso esteja tudo certo
-        }
-      }
-      if (query.length < 3) {
-        //se a query for menor que 3 nem compensa buscar
-        setMovies([]); //entao, mudar o state pra array vazia
-        setError(""); //sem mensagem de erro
-        return;
-      }
-      handleCloseMovie();
-      fetchMovies();
-      //nunca definir state dentro do fetch sem estar no useEffect. vai fazer milhoes de requests.
-      // queremos que a função seja executada nao quando o componente for re-renderizado, mas sim quando for colocado na tela pela primeira vez
-      //res = response
-
-      //**quando usar uma api por http request, sempre fazer a clean up function e o abort controller**
-      return function () {
-        controller.abort;
-      };
-    },
-    [query]
-  ); //array vazia é uma dependency array, só vai rodar quando o App() for printado na tela uma primeira vez
+  //array vazia é uma dependency array, só vai rodar quando o App() for printado na tela uma primeira vez
 
   return (
     <>
