@@ -4,6 +4,7 @@ import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
 import { useKey } from "./useKey";
+import PropTypes from "prop-types";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -392,3 +393,61 @@ function WatchedMovie({ movie, onDeleteWatched }) {
     </li>
   );
 }
+
+// PropTypes for components
+
+ErrorMessage.propTypes = {
+  message: PropTypes.string.isRequired,
+};
+
+NavBar.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+NumResults.propTypes = {
+  movies: PropTypes.array.isRequired,
+};
+
+Search.propTypes = {
+  query: PropTypes.string.isRequired,
+  setQuery: PropTypes.func.isRequired,
+};
+
+Main.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+Box.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+MovieList.propTypes = {
+  movies: PropTypes.array.isRequired,
+  onSelectMovie: PropTypes.func.isRequired,
+};
+
+Movie.propTypes = {
+  movie: PropTypes.object.isRequired,
+  onSelectMovie: PropTypes.func.isRequired,
+};
+
+MovieDetails.propTypes = {
+  selectedId: PropTypes.string.isRequired,
+  onCloseMovie: PropTypes.func.isRequired,
+  onAddWatched: PropTypes.func.isRequired,
+  watched: PropTypes.array.isRequired,
+};
+
+WatchedSummary.propTypes = {
+  watched: PropTypes.array.isRequired,
+};
+
+WatchedMovieList.propTypes = {
+  watched: PropTypes.array.isRequired,
+  onDeleteWatched: PropTypes.func.isRequired,
+};
+
+WatchedMovie.propTypes = {
+  movie: PropTypes.object.isRequired,
+  onDeleteWatched: PropTypes.func.isRequired,
+};
