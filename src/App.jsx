@@ -3,6 +3,7 @@ import "./App.css";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -12,11 +13,6 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const { movies, isLoading, error } = useMovies(query);
   const [watched, setWatched] = useLocalStorageState([], "watched");
-  // const [watched, setWatched] = useState([]);
-  // const [watched, setWatched] = useState(function () {
-  //   const storedValue = localStorage.getItem("watched");
-  //   return JSON.parse(storedValue);
-  // });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -114,21 +110,14 @@ function Logo() {
 }
 function Search({ query, setQuery }) {
   const inputEl = useRef(null); //em dom manipulation é geralmente null mesmo
+  useKey("Enter", function () {
+    if (document.activeElement === inputEl.current) return;
+    inputEl.current.focus();
+    setQuery("");
+  });
 
-  useEffect(
-    function () {
-      function callback(e) {
-        if (e.code === "Enter") {
-          if (document.activeElement === inputEl.current) return;
-          inputEl.current.focus();
-          setQuery("");
-        }
-      }
-      document.addEventListener("keydown", callback);
-      return () => document.addEventListener("keydown", callback);
-    },
-    [setQuery]
-  );
+  //tem que usar como callback pra nao perder nenhuma funcionalidade
+
   // useEffect(function () {
   //   // const el = document.querySelector(".search");
   //   // console.log(el);
@@ -235,6 +224,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   }
+  useKey("Escape", onCloseMovie);
   useEffect(
     //side effect
     function () {
